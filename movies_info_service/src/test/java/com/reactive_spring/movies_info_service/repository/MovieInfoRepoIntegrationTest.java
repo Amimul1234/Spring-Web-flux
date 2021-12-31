@@ -13,6 +13,8 @@ import reactor.test.StepVerifier;
 import java.time.LocalDate;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 /**
  * Created by Amimul Ehsan
  * Date: 01/01/2022
@@ -29,10 +31,10 @@ class MovieInfoRepoIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        System.out.println("BeforeEach() executed ... ");
         var movieInfos = List.of(
+
                 new MovieInfo(null, "Batman Begins", 2005, List.of("Christian Bale", "Michael Cane"), LocalDate.parse("2005-06-15")),
-                new MovieInfo(null, "The Dark Knights", 2008, List.of("Christian Bale", "HeathLedger"), LocalDate.parse("2008-07-18")),
+                new MovieInfo("abc", "The Dark Knights", 2008, List.of("Christian Bale", "HeathLedger"), LocalDate.parse("2008-07-18")),
                 new MovieInfo(null, "Batman Begins", 2012, List.of("Christian Bale", "Tom Hardy"), LocalDate.parse("2012-07-20")));
 
         movieInfoRepo.saveAll(movieInfos)
@@ -41,7 +43,6 @@ class MovieInfoRepoIntegrationTest {
 
     @AfterEach
     void tearDown() {
-        System.out.println("afterEach() executed ... ");
         movieInfoRepo.deleteAll().block();
     }
 
@@ -53,6 +54,30 @@ class MovieInfoRepoIntegrationTest {
         StepVerifier
                 .create(moviesInfoFlux)
                 .expectNextCount(3)
+                .verifyComplete();
+    }
+
+    @Test
+    void findId() {
+
+        var movieInfoMono = movieInfoRepo.findById("abc");
+
+        StepVerifier
+                .create(movieInfoMono)
+                .assertNext(movieInfo ->
+                        assertEquals("The Dark Knights", movieInfo.getName()))
+                .verifyComplete();
+    }
+
+    @Test
+    void saveMovieInfo() {
+
+        var movieInfoMono = movieInfoRepo.save(new MovieInfo(null, "Batman Begins1", 2005, List.of("Christian Bale", "Michael Cane"), LocalDate.parse("2005-06-15")));
+
+        StepVerifier
+                .create(movieInfoMono)
+                .assertNext(movieInfo1 ->
+                        assertEquals("Batman Begins1", movieInfo1.getName()))
                 .verifyComplete();
     }
 }
